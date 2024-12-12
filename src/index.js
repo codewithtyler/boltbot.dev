@@ -3,6 +3,11 @@ const config = require('./config');
 const { loadCommands } = require('./utils/loadCommands');
 const { startWebServer } = require('./web/server');
 
+// Enable detailed debugging
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled promise rejection:', error);
+});
+
 // Validate required environment variables
 if (!config.token) {
   console.error('Error: Missing DISCORD_TOKEN in environment variables');
@@ -19,8 +24,12 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]  // Only need Guilds for slash commands
 });
 
+console.log('Discord client initialized');
+
 client.commands = new Collection();
+console.log('Attempting to load commands...');
 loadCommands(client);
+console.log('Commands loaded successfully');
 
 client.once('ready', () => {
   console.log(`Bot is ready! Logged in as ${client.user.tag}`);
@@ -61,4 +70,19 @@ client.on('interactionCreate', async interaction => {
       await interaction.reply(errorMessage);
     }
   }
+});
+
+// Login to Discord
+console.log('Attempting to login to Discord...');
+client.login(config.token).catch(error => {
+  console.error('Failed to login to Discord:');
+  if (error.code === 'TokenInvalid') {
+    console.error('The provided token is invalid. Please check your DISCORD_TOKEN environment variable.');
+    console.error('Token value:', config.token ? '[PRESENT]' : '[MISSING]');
+  } else if (error.code === 'DisallowedIntents') {
+    console.error('The bot is missing required privileged intents. Please check the Discord Developer Portal.');
+  } else {
+    console.error(error);
+  }
+  process.exit(1);
 });

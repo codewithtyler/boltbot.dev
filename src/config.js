@@ -1,5 +1,11 @@
 require('dotenv').config();
 
+// Debug environment variables (without exposing sensitive values)
+console.log('\nEnvironment Check:');
+console.log('DISCORD_TOKEN:', process.env.DISCORD_TOKEN ? '[PRESENT]' : '[MISSING]');
+console.log('CLIENT_ID:', process.env.CLIENT_ID ? '[PRESENT]' : '[MISSING]');
+console.log('PORT:', process.env.PORT || '3000 (default)\n');
+
 module.exports = {
   // Bot configuration
   token: process.env.DISCORD_TOKEN,

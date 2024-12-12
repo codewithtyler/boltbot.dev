@@ -1,52 +1,88 @@
-const { REST, Routes } = require('discord.js');
+const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const config = require('./config');
 const { loadCommands } = require('./utils/loadCommands');
+const { startWebServer } = require('./web/server');
+
+// Enable detailed debugging
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled promise rejection:', error);
+});
 
 // Validate required environment variables
-if (!config.token || !config.clientId) {
-  console.error('Error: Missing DISCORD_TOKEN or CLIENT_ID in environment variables');
+if (!config.token) {
+  console.error('Error: Missing DISCORD_TOKEN in environment variables');
   process.exit(1);
 }
 
-const client = { commands: new Map() };
-const commands = [];
-
-loadCommands(client);
-
-// Convert commands to JSON for registration
-for (const command of client.commands.values()) {
-  commands.push(command.data.toJSON());
+if (!config.clientId) {
+  console.error('Error: Missing CLIENT_ID in environment variables');
+  process.exit(1);
 }
 
-const rest = new REST().setToken(config.token);
+// Initialize Discord client
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds]  // Only need Guilds for slash commands
+});
 
-(async () => {
+console.log('Discord client initialized');
+
+client.commands = new Collection();
+console.log('Attempting to load commands...');
+loadCommands(client);
+console.log('Commands loaded successfully');
+
+client.once('ready', () => {
+  console.log(`Bot is ready! Logged in as ${client.user.tag}`);
+  // Generate proper invite link with required scopes and permissions
+  const inviteLink = `https://discord.com/api/oauth2/authorize?client_id=${config.clientId}&permissions=2048&scope=bot%20applications.commands`;
+  console.log('\nTo add the bot to your server:');
+  console.log('1. Make sure you have the "Manage Server" permission');
+  console.log(`2. Click this link: ${inviteLink}`);
+  console.log('3. Select your server and click "Authorize"');
+  console.log('\nAfter adding the bot:');
+  console.log('1. Run "npm run deploy" to register the slash commands');
+  console.log('2. Wait a few minutes for Discord to propagate the commands');
+  console.log('3. Type / in your server to see the available commands\n');
+  startWebServer();
+});
+
+client.on('error', error => {
+  console.error('Discord client error:', error);
+});
+
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const command = interaction.client.commands.get(interaction.commandName);
+  if (!command) return;
+
   try {
-    console.log('\nDeploying slash commands...');
-    console.log(`Client ID: ${config.clientId}`);
-    console.log('Scopes: bot, applications.commands');
-    console.log('Required Permissions: Send Messages (2048)\n');
-
-    await rest.put(
-      Routes.applicationCommands(config.clientId),
-      { body: commands },
-    );
-
-    console.log('✅ Commands deployed successfully!');
-    console.log('\nAvailable commands:');
-    commands.forEach(cmd => {
-      console.log(`- /${cmd.name}: ${cmd.description}`);
-    });
-    console.log('\nNote: It may take up to 1 hour for commands to show up in all servers.');
+    await command.execute(interaction);
   } catch (error) {
-    console.error('\n❌ Error deploying commands:');
-    if (error.code === 50001) {
-      console.error('Bot token may be invalid or missing required scopes');
-    } else if (error.code === 50013) {
-      console.error('Bot is missing required permissions');
+    console.error(error);
+    const errorMessage = {
+      content: 'There was an error executing this command!',
+      ephemeral: true
+    };
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp(errorMessage);
     } else {
-      console.error(error);
+      await interaction.reply(errorMessage);
     }
-    process.exit(1);
   }
-})();
+});
+
+// Login to Discord
+console.log('Attempting to login to Discord...');
+client.login(config.token).catch(error => {
+  console.error('Failed to login to Discord:');
+  if (error.code === 'TokenInvalid') {
+    console.error('The provided token is invalid. Please check your DISCORD_TOKEN environment variable.');
+    console.error('Token value:', config.token ? '[PRESENT]' : '[MISSING]');
+  } else if (error.code === 'DisallowedIntents') {
+    console.error('The bot is missing required privileged intents. Please check the Discord Developer Portal.');
+  } else {
+    console.error(error);
+  }
+  process.exit(1);
+});
