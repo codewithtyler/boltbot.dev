@@ -1,7 +1,9 @@
 const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const config = require('./config');
 const { loadCommands } = require('./utils/loadCommands');
-const webServer = require('./web/server');
+const { startWebServer } = require('./web/server');
+
+if (!config.token) throw new Error('Missing DISCORD_TOKEN in .env file');
 
 // Initialize Discord client
 const client = new Client({
@@ -13,7 +15,7 @@ loadCommands(client);
 
 client.once('ready', () => {
   console.log(`Ready! Logged in as ${client.user.tag}`);
-  webServer.startWebServer();
+  startWebServer();
 });
 
 client.on('interactionCreate', async interaction => {
@@ -38,4 +40,4 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(config.token);

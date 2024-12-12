@@ -10,7 +10,11 @@ module.exports = {
 
   // Discord configuration
   discord: {
-    intents: ['Guilds'],
+    intents: [
+      'Guilds',
+      'GuildMessages',
+      'MessageContent'
+    ],
     embedColors: {
       primary: '#5865F2',
       support: '#EA4AAA'
