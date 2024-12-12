@@ -24,7 +24,16 @@ loadCommands(client);
 
 client.once('ready', () => {
   console.log(`Bot is ready! Logged in as ${client.user.tag}`);
-  console.log(`Bot invite link: https://discord.com/api/oauth2/authorize?client_id=${config.clientId}&permissions=2048&scope=bot%20applications.commands`);
+  // Generate proper invite link with required scopes and permissions
+  const inviteLink = `https://discord.com/api/oauth2/authorize?client_id=${config.clientId}&permissions=2048&scope=bot%20applications.commands`;
+  console.log('\nTo add the bot to your server:');
+  console.log('1. Make sure you have the "Manage Server" permission');
+  console.log(`2. Click this link: ${inviteLink}`);
+  console.log('3. Select your server and click "Authorize"');
+  console.log('\nAfter adding the bot:');
+  console.log('1. Run "npm run deploy" to register the slash commands');
+  console.log('2. Wait a few minutes for Discord to propagate the commands');
+  console.log('3. Type / in your server to see the available commands\n');
   startWebServer();
 });
 
