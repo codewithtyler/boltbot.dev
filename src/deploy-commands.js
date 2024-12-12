@@ -2,6 +2,12 @@ const { REST, Routes } = require('discord.js');
 const config = require('./config');
 const { loadCommands } = require('./utils/loadCommands');
 
+// Validate required environment variables
+if (!config.token || !config.clientId) {
+  console.error('Error: Missing DISCORD_TOKEN or CLIENT_ID in environment variables');
+  process.exit(1);
+}
+
 const client = { commands: new Map() };
 const commands = [];
 
@@ -15,7 +21,6 @@ for (const command of client.commands.values()) {
 const rest = new REST().setToken(config.token);
 
 (async () => {
-  if (!config.token || !config.clientId) throw new Error('Missing DISCORD_TOKEN or CLIENT_ID in .env file');
   try {
     console.log('Started refreshing application (/) commands.');
 
@@ -24,6 +29,7 @@ const rest = new REST().setToken(config.token);
       { body: commands },
     );
 
+    console.log('Command deployment complete! Use /prompt or /support in your server.');
     console.log('Successfully reloaded application (/) commands.');
   } catch (error) {
     console.error('Error deploying commands:', error);

@@ -10,11 +10,7 @@ module.exports = {
 
   // Discord configuration
   discord: {
-    intents: [
-      'Guilds',
-      'GuildMessages',
-      'MessageContent'
-    ],
+    intents: ['Guilds'],  // We only need Guilds intent for slash commands
     embedColors: {
       primary: '#5865F2',
       support: '#EA4AAA'

@@ -3,19 +3,33 @@ const config = require('./config');
 const { loadCommands } = require('./utils/loadCommands');
 const { startWebServer } = require('./web/server');
 
-if (!config.token) throw new Error('Missing DISCORD_TOKEN in .env file');
+// Validate required environment variables
+if (!config.token) {
+  console.error('Error: Missing DISCORD_TOKEN in environment variables');
+  process.exit(1);
+}
+
+if (!config.clientId) {
+  console.error('Error: Missing CLIENT_ID in environment variables');
+  process.exit(1);
+}
 
 // Initialize Discord client
 const client = new Client({
-  intents: config.discord.intents.map(intent => GatewayIntentBits[intent])
+  intents: [GatewayIntentBits.Guilds]  // Only need Guilds for slash commands
 });
 
 client.commands = new Collection();
 loadCommands(client);
 
 client.once('ready', () => {
-  console.log(`Ready! Logged in as ${client.user.tag}`);
+  console.log(`Bot is ready! Logged in as ${client.user.tag}`);
+  console.log(`Bot invite link: https://discord.com/api/oauth2/authorize?client_id=${config.clientId}&permissions=2048&scope=bot%20applications.commands`);
   startWebServer();
+});
+
+client.on('error', error => {
+  console.error('Discord client error:', error);
 });
 
 client.on('interactionCreate', async interaction => {
@@ -39,5 +53,3 @@ client.on('interactionCreate', async interaction => {
     }
   }
 });
-
-client.login(config.token);
