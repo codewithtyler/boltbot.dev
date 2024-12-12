@@ -12,7 +12,7 @@ exports.startWebServer = function () {
           <style>
             body {
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-              background: #f6f8fa;
+              background: #0d1117;
               display: flex;
               align-items: center;
               justify-content: center;
@@ -22,14 +22,19 @@ exports.startWebServer = function () {
             .container {
               text-align: center;
               padding: 2rem;
-              background: white;
+              background: #161b22;
               border-radius: 8px;
-              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+              color: #c9d1d9;
             }
-            h1 { color: #5865F2; }
+            h1 {
+              color: #5865F2;
+              margin-bottom: 1.5rem;
+            }
             .status {
               color: #57F287;
               font-weight: bold;
+              margin: 0;
             }
           </style>
         </head>
@@ -44,6 +49,6 @@ exports.startWebServer = function () {
   });
 
   app.listen(config.port, () => {
-    console.log(`Web server is running on port ${config.port}`);
+    console.log('Web server started successfully');
   });
 }

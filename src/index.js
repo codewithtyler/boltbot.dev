@@ -3,7 +3,6 @@ const config = require('./config');
 const { loadCommands } = require('./utils/loadCommands');
 const { startWebServer } = require('./web/server');
 
-// Enable detailed debugging
 process.on('unhandledRejection', (error) => {
   console.error('Unhandled promise rejection:', error);
 });
@@ -19,30 +18,15 @@ if (!config.clientId) {
   process.exit(1);
 }
 
-// Initialize Discord client
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]  // Only need Guilds for slash commands
 });
 
-console.log('Discord client initialized');
-
 client.commands = new Collection();
-console.log('Attempting to load commands...');
 loadCommands(client);
-console.log('Commands loaded successfully');
 
 client.once('ready', () => {
   console.log(`Bot is ready! Logged in as ${client.user.tag}`);
-  // Generate proper invite link with required scopes and permissions
-  const inviteLink = `https://discord.com/api/oauth2/authorize?client_id=${config.clientId}&permissions=2048&scope=bot%20applications.commands`;
-  console.log('\nTo add the bot to your server:');
-  console.log('1. Make sure you have the "Manage Server" permission');
-  console.log(`2. Click this link: ${inviteLink}`);
-  console.log('3. Select your server and click "Authorize"');
-  console.log('\nAfter adding the bot:');
-  console.log('1. Run "npm run deploy" to register the slash commands');
-  console.log('2. Wait a few minutes for Discord to propagate the commands');
-  console.log('3. Type / in your server to see the available commands\n');
   startWebServer();
 });
 
@@ -72,13 +56,10 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-// Login to Discord
-console.log('Attempting to login to Discord...');
 client.login(config.token).catch(error => {
   console.error('Failed to login to Discord:');
   if (error.code === 'TokenInvalid') {
     console.error('The provided token is invalid. Please check your DISCORD_TOKEN environment variable.');
-    console.error('Token value:', config.token ? '[PRESENT]' : '[MISSING]');
   } else if (error.code === 'DisallowedIntents') {
     console.error('The bot is missing required privileged intents. Please check the Discord Developer Portal.');
   } else {
