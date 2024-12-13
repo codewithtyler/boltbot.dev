@@ -1,6 +1,7 @@
 const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const config = require('./config');
 const { loadCommands } = require('./utils/loadCommands');
+const { deployCommands } = require('./utils/commands');
 const { startWebServer } = require('./web/server');
 
 process.on('unhandledRejection', (error) => {
@@ -25,8 +26,14 @@ const client = new Client({
 client.commands = new Collection();
 loadCommands(client);
 
-client.once('ready', () => {
+client.once('ready', async () => {
   console.log(`Bot is ready! Logged in as ${client.user.tag}`);
+  try {
+    await deployCommands(client);
+  } catch (error) {
+    console.error('Failed to deploy commands:', error);
+    // Don't exit process, allow bot to continue running
+  }
   startWebServer();
 });
 

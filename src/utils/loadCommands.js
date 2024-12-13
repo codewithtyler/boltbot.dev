@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-exports.loadCommands = function (client) {
+function loadCommands(client) {
   const commandsPath = path.join(__dirname, '..', 'commands');
   const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
@@ -14,3 +14,5 @@ exports.loadCommands = function (client) {
     }
   }
 }
+
+module.exports = { loadCommands };

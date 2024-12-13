@@ -2,8 +2,7 @@
   "name": "bolt-discord-bot",
   "private": true,
   "scripts": {
-    "start": "node src/index.js",
-    "deploy": "node src/deploy-commands.js"
+    "start": "node src/index.js"
   },
   "dependencies": {
     "discord.js": "^14.14.1",
