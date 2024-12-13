@@ -5,8 +5,10 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('support')
     .setDescription('Get information about supporting Bolt'),
-
+    
   async execute(interaction) {
+    console.log('Generating support embed');
+    
     const embed = new EmbedBuilder()
       .setTitle('Support Bolt')
       .setDescription('Want to support the Bolt Discord bot? Click the link below to sponsor our maintainer\'s GitHub account')
@@ -18,7 +20,7 @@ module.exports = {
       .setFooter({
         text: 'Thank you for supporting Bolt! ❤️'
       });
-
-    await interaction.reply({ embeds: [embed] });
+    
+    await interaction.editReply({ embeds: [embed] });
   },
 };
