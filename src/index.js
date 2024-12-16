@@ -3,6 +3,7 @@ const config = require('./config');
 const { loadCommands } = require('./utils/loadCommands');
 const { deployCommands } = require('./utils/commands');
 const { startWebServer } = require('./web/server');
+const { handleInteractionWithRetry } = require('./utils/interactionHandler');
 
 // Enhance error logging
 process.on('unhandledRejection', (error) => {
@@ -25,7 +26,7 @@ if (!config.clientId) {
   process.exit(1);
 }
 
-const client = new Client({ 
+const client = new Client({
   intents: [GatewayIntentBits.Guilds]  // Only need Guilds for slash commands
 });
 
@@ -51,36 +52,31 @@ client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
   console.log(`Command received: ${interaction.commandName} from ${interaction.user.tag}`);
-
   const command = interaction.client.commands.get(interaction.commandName);
+
   if (!command) {
     console.warn(`Unknown command: ${interaction.commandName}`);
     return;
   }
 
   try {
-    // Defer the reply immediately to prevent timeout
-    await interaction.deferReply();
-    
     console.log(`Executing command: ${interaction.commandName}`);
-    await command.execute(interaction);
+    await handleInteractionWithRetry(interaction, async () => {
+      await command.execute(interaction);
+    });
     console.log(`Command completed: ${interaction.commandName}`);
-    
+
   } catch (error) {
     console.error('Command execution error:', {
       command: interaction.commandName,
+      user: interaction.user.tag,
+      guild: interaction.guild?.name || 'DM',
       error: {
         name: error.name,
         message: error.message,
         stack: error.stack
       }
     });
-
-    const errorMessage = {
-      content: 'There was an error executing this command!',
-      ephemeral: true 
-    };
-    await interaction.editReply(errorMessage);
   }
 });
 
